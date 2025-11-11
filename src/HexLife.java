@@ -1,15 +1,25 @@
-import java.applet.Applet;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class HexLife extends Applet implements Runnable, ActionListener, HexLifeConstants
+public class HexLife extends JFrame implements Runnable, ActionListener, HexLifeConstants
 {
+    private JPanel canvas;
 
     /**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            HexLife game = new HexLife();
+            game.init();
+            game.setVisible(true);
+        });
+    }
+
 	public void init()
     {
         if(boardShape == HexLifeConstants.RECT)
@@ -21,32 +31,57 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
             minSize = 7;
             maxSize = 30;
         }
+
+        // Set up the main frame
+        setTitle("HexLife - Conway's Game of Life");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Create control panel at the top
+        JPanel controlPanel = new JPanel(new FlowLayout());
+
         animateButton = new Button("Animate");
         animateButton.setActionCommand("animate");
         animateButton.addActionListener(this);
-        add(animateButton);
+        controlPanel.add(animateButton);
         stepButton = new Button("Step");
         stepButton.setActionCommand("step");
         stepButton.addActionListener(this);
-        add(stepButton);
+        controlPanel.add(stepButton);
         randomizeButton = new Button("Randomize");
         randomizeButton.setActionCommand("randomize");
         randomizeButton.addActionListener(this);
-        add(randomizeButton);
-        add(sizeLabel);
+        controlPanel.add(randomizeButton);
+        controlPanel.add(sizeLabel);
         sizeField = new TextField(String.valueOf(boardSize), 2);
         sizeField.addActionListener(this);
-        add(sizeField);
+        controlPanel.add(sizeField);
         shapeGroup = new CheckboxGroup();
         rectShape = new Checkbox("Rect", shapeGroup, true);
         hexShape = new Checkbox("Hex", shapeGroup, false);
-        add(shapeLabel);
-        add(rectShape);
-        add(hexShape);
+        controlPanel.add(shapeLabel);
+        controlPanel.add(rectShape);
+        controlPanel.add(hexShape);
         changeButton = new Button("Change");
         changeButton.setActionCommand("change");
         changeButton.addActionListener(this);
-        add(changeButton);
+        controlPanel.add(changeButton);
+
+        add(controlPanel, BorderLayout.NORTH);
+
+        // Create canvas panel for drawing
+        canvas = new JPanel() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                HexLife.this.paintCanvas(g);
+            }
+        };
+        canvas.setBackground(Color.WHITE);
+        add(canvas, BorderLayout.CENTER);
     }
 
     public void actionPerformed(ActionEvent actionevent)
@@ -77,13 +112,13 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
         if(s == "randomize")
         {
             board.randomize();
-            repaint();
+            canvas.repaint();
             return;
         }
         if(s == "step")
         {
             board.advance();
-            repaint();
+            canvas.repaint();
             return;
         }
         if(s == "change")
@@ -120,7 +155,7 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
                 board = new Board(boardShape, boardSize);
                 sizeField.setText(String.valueOf(boardSize));
                 boardChanged = true;
-                repaint();
+                canvas.repaint();
                 return;
             }
             if(i < minSize || i > maxSize)
@@ -131,7 +166,7 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
             boardSize = i;
             board = new Board(boardShape, boardSize);
             boardChanged = true;
-            repaint();
+            canvas.repaint();
         }
     }
 
@@ -148,7 +183,7 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
     public void stop()
     {
         lifeThread = null;
-        repaint();
+        canvas.repaint();
     }
 
     public void run()
@@ -157,7 +192,7 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
         for(Thread thread = Thread.currentThread(); thread == lifeThread;)
         {
             board.advance();
-            repaint();
+            canvas.repaint();
             try
             {
                 Thread.sleep(10L);
@@ -172,34 +207,29 @@ public class HexLife extends Applet implements Runnable, ActionListener, HexLife
 
     public void setDrawClip(Graphics g)
     {
-        g.setClip(1, 1, getSize().width - 2, getSize().height - 2);
+        g.setClip(1, 1, canvas.getSize().width - 2, canvas.getSize().height - 2);
     }
 
     public void displayMessage(Graphics g, String s)
     {
         g.setColor(Color.white);
-        g.fillRect(1, 1, getSize().width - 2, 25);
+        g.fillRect(1, 1, canvas.getSize().width - 2, 25);
         g.setFont(messageFont);
         g.setColor(Color.black);
         g.drawString(s, 10, 20);
     }
 
-    public void paint(Graphics g)
+    public void paintCanvas(Graphics g)
     {
         g.setColor(Color.black);
-        g.drawRect(0, 0, getSize().width - 1, getSize().height - 1);
+        g.drawRect(0, 0, canvas.getSize().width - 1, canvas.getSize().height - 1);
         g.setColor(Color.white);
-        g.fillRect(1, 1, getSize().width - 2, getSize().height - 2);
+        g.fillRect(1, 1, canvas.getSize().width - 2, canvas.getSize().height - 2);
         setDrawClip(g);
-        update(g);
-    }
 
-    public void update(Graphics g)
-    {
         if(boardChanged)
         {
             boardChanged = false;
-            paint(g);
         }
         displayMessage(g, "Gen: " + board.generation);
         for(int i = 0; i < board.numberOfRows; i++)
