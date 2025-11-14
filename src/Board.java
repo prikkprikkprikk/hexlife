@@ -49,8 +49,8 @@ public class Board implements HexLifeConstants {
         for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             boardArray[currentRow] = new Cell[sideLength];
             for (int currentCol = 0; currentCol < sideLength; currentCol++) {
-                int yPos = SCREEN_CENTER_Y - 8 * ((numberOfRows / 2 - currentRow) + 1);
-                int xPos = SCREEN_CENTER_X - 5 * (sideLength - currentCol * 2 - 1 - currentRow % 2);
+                int yPos = SCREEN_CENTER_Y - GRIDSIZE_Y * ((numberOfRows / 2 - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - GRIDSIZE_X * (sideLength - currentCol * 2 - 1 - currentRow % 2);
                 boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
         }
@@ -74,8 +74,8 @@ public class Board implements HexLifeConstants {
         for (int currentRow = 0; currentRow < diameter; currentRow++) {
             boardArray[currentRow] = new Cell[currentRowLength];
             for (int currentCol = 0; currentCol < currentRowLength; currentCol++) {
-                int yPos = SCREEN_CENTER_Y - 8 * ((sideLength - currentRow) + 1);
-                int xPos = SCREEN_CENTER_X - 5 * (diameter - horizontalOffset - currentCol * 2);
+                int yPos = SCREEN_CENTER_Y - GRIDSIZE_Y * ((sideLength - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - GRIDSIZE_X * (diameter - horizontalOffset - currentCol * 2);
                 boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
 
