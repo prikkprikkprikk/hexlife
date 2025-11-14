@@ -1,408 +1,320 @@
-public class Board
-    implements HexLifeConstants
-{
+public class Board implements HexLifeConstants {
 
-    public Board(String s, int i)
-    {
-        shape = s;
-        if(shape == HexLifeConstants.RECT)
-            makeRectBoard(i);
-        else
-        if(shape == HexLifeConstants.HEX)
-            makeHexBoard(i);
+    public Cell boardArray[][];
+    public int sideLength;
+    public int diameter;
+    public String shape;
+    private int topRow = 0;
+    private int middleRow;
+    private int bottomRow;
+    public int numberOfRows;
+    public int generation;
+
+    public Board(String requestedShape, int requestedSideLength) {
+        shape = requestedShape;
+        if (RECT.equals(shape))
+            makeRectBoard(requestedSideLength);
+        else if (HEX.equals(shape))
+            makeHexBoard(requestedSideLength);
         findNeighbours();
         generation = 1;
     }
 
-    public void advance()
-    {
-        for(int i = 0; i <= bottom_row; i++)
-        {
-            for(int j = 0; j <= e_end(i); j++)
-                boardArray[i][j].foretellFuture();
+    public void advance() {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
+            for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
+                boardArray[currentRow][currentCol].foretellFuture();
 
         }
 
-        for(int k = 0; k <= bottom_row; k++)
-        {
-            for(int l = 0; l <= e_end(k); l++)
-                boardArray[k][l].realizeFuture();
-
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
+            for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
+                boardArray[currentRow][currentCol].realizeFuture();
         }
 
         generation++;
     }
 
-    private void makeRectBoard(int i)
-    {
-        if(i < 10)
-            side = 10;
+    private void makeRectBoard(int requestedSideLength) {
+        if (requestedSideLength < MINRECTSIZE)
+            sideLength = MINRECTSIZE;
+        else if (requestedSideLength > MAXRECTSIZE)
+            sideLength = MAXRECTSIZE;
         else
-        if(i > 60)
-            side = 60;
-        else
-            side = i;
-        bottom_row = (int)((double)side / 0.86599999999999999D);
-        bottom_row = bottom_row - (bottom_row + 1) % 2;
-        cellCount = side ^ bottom_row + 1;
-        numberOfRows = bottom_row + 1;
-        boardArray = new Cell[bottom_row + 1][];
-        for(int l = 0; l <= bottom_row; l++)
-        {
-            boardArray[l] = new Cell[side];
-            for(int i1 = 0; i1 < side; i1++)
-            {
-                int j = 320 - 8 * ((numberOfRows / 2 - l) + 1);
-                int k = 320 - 5 * (side - i1 * 2 - 1 - l % 2);
-                boardArray[l][i1] = new Cell(j, k);
-            }
-
-        }
-
-    }
-
-    private void makeHexBoard(int i)
-    {
-        if(i < 7)
-            side = 7;
-        else
-        if(i > 30)
-            side = 30;
-        else
-            side = i;
-        diameter = side * 2 - 1;
-        numberOfRows = diameter;
-        cellCount = side * (side - 1) * 3 - 1;
-        middle_row = side - 1;
-        bottom_row = diameter - 1;
-        int j = side;
-        byte byte0 = 1;
-        int i1 = side;
+            sideLength = requestedSideLength;
+        bottomRow = (int) ((double) sideLength / HEX_HEIGHT_TO_WIDTH_RATIO);
+        bottomRow = bottomRow - (bottomRow + 1) % 2;
+        numberOfRows = bottomRow + 1;
         boardArray = new Cell[numberOfRows][];
-        for(int j1 = 0; j1 < diameter; j1++)
-        {
-            boardArray[j1] = new Cell[j];
-            for(int k1 = 0; k1 < j; k1++)
-            {
-                int k = 320 - 8 * ((side - j1) + 1);
-                int l = 320 - 5 * (diameter - i1 - k1 * 2);
-                boardArray[j1][k1] = new Cell(k, l);
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
+            boardArray[currentRow] = new Cell[sideLength];
+            for (int currentCol = 0; currentCol < sideLength; currentCol++) {
+                int yPos = SCREEN_CENTER_Y - GRIDSIZE_Y * ((numberOfRows / 2 - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - GRIDSIZE_X * (sideLength - currentCol * 2 - 1 - currentRow % 2);
+                boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
+            }
+        }
+    }
+
+    private void makeHexBoard(int requestedSideLength) {
+        if (requestedSideLength < MINHEXSIZE)
+            sideLength = MINHEXSIZE;
+        else if (requestedSideLength > MAXHEXSIZE)
+            sideLength = MAXHEXSIZE;
+        else
+            sideLength = requestedSideLength;
+        diameter = sideLength * 2 - 1;
+        numberOfRows = diameter;
+        middleRow = sideLength - 1;
+        bottomRow = diameter - 1;
+        int currentRowLength = sideLength;
+        int rowLengthChangeStep = 1;
+        int horizontalOffset = sideLength;
+        boardArray = new Cell[numberOfRows][];
+        for (int currentRow = 0; currentRow < diameter; currentRow++) {
+            boardArray[currentRow] = new Cell[currentRowLength];
+            for (int currentCol = 0; currentCol < currentRowLength; currentCol++) {
+                int yPos = SCREEN_CENTER_Y - GRIDSIZE_Y * ((sideLength - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - GRIDSIZE_X * (diameter - horizontalOffset - currentCol * 2);
+                boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
 
-            if(j == diameter)
-                byte0 = -1;
-            j += byte0;
-            i1 -= byte0;
+            if (currentRowLength == diameter)
+                rowLengthChangeStep = -1;
+            currentRowLength += rowLengthChangeStep;
+            horizontalOffset -= rowLengthChangeStep;
         }
 
     }
 
-    public void randomize()
-    {
-        for(int j = 0; j <= bottom_row; j++)
-        {
-            int i = e_end(j);
-            for(int k = 0; k <= i; k++)
-                boardArray[j][k].randomize();
-
+    public void randomize() {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
+            int lastRowIndex = lastRowIndex(currentRow);
+            for (int currentCol = 0; currentCol <= lastRowIndex; currentCol++)
+                boardArray[currentRow][currentCol].randomize();
         }
 
         generation = 1;
     }
 
-    private void findNeighbours()
-    {
-        for(int i = 0; i <= bottom_row; i++)
-        {
-            int j = e_end(i);
-            for(int k = 0; k <= j; k++)
-                boardArray[i][k].neighbours.setNeighbours(find_ne(i, k), find_e(i, k), find_se(i, k), find_sw(i, k), find_w(i, k), find_nw(i, k));
-
+    private void findNeighbours() {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
+            int lastRowIndex = lastRowIndex(currentRow);
+            for (int currentCol = 0; currentCol <= lastRowIndex; currentCol++)
+                boardArray[currentRow][currentCol].neighbours.setNeighbours(find_ne(currentRow, currentCol),
+                        find_e(currentRow, currentCol), find_se(currentRow, currentCol),
+                        find_sw(currentRow, currentCol),
+                        find_w(currentRow, currentCol), find_nw(currentRow, currentCol));
         }
-
     }
 
-    private int e_end(int i)
-    {
-        return boardArray[i].length - 1;
+    private int lastRowIndex(int row) {
+        return boardArray[row].length - 1;
     }
 
-    private Cell find_ne(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(i == top_row)
-            {
-                k = bottom_row;
-                l = j;
-            } else
-            if(i <= middle_row)
-            {
-                if(j == e_end(i))
-                {
-                    k = (i + side) - 2;
-                    l = 0;
-                } else
-                {
-                    k = i - 1;
-                    l = j;
+    private Cell find_ne(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originRow == topRow) {
+                targetRow = bottomRow;
+                targetCol = originCol;
+            } else if (originRow <= middleRow) {
+                if (originCol == lastRowIndex(originRow)) {
+                    targetRow = (originRow + sideLength) - 2;
+                    targetCol = 0;
+                } else {
+                    targetRow = originRow - 1;
+                    targetCol = originCol;
                 }
-            } else
-            {
-                k = i - 1;
-                l = j + 1;
+            } else {
+                targetRow = originRow - 1;
+                targetCol = originCol + 1;
             }
-        } else
-        {
-            if(i == top_row)
-            {
-                k = bottom_row;
-                l = j;
-            } else
-            {
-                k = i - 1;
+        } else {
+            if (originRow == topRow) {
+                targetRow = bottomRow;
+                targetCol = originCol;
+            } else {
+                targetRow = originRow - 1;
             }
-            if(j == e_end(i))
-            {
-                if(i % 2 == 1)
-                    l = 0;
+            if (originCol == lastRowIndex(originRow)) {
+                if (originRow % 2 == 1)
+                    targetCol = 0;
                 else
-                    l = j;
-            } else
-            {
-                l = j + i % 2;
+                    targetCol = originCol;
+            } else {
+                targetCol = originCol + originRow % 2;
             }
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
 
-    private Cell find_e(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(j == e_end(i))
-            {
-                if(i <= middle_row)
-                {
-                    k = (i + side) - 1;
-                    l = 0;
-                } else
-                {
-                    k = i - side;
-                    l = 0;
+    private Cell find_e(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originCol == lastRowIndex(originRow)) {
+                if (originRow <= middleRow) {
+                    targetRow = (originRow + sideLength) - 1;
+                    targetCol = 0;
+                } else {
+                    targetRow = originRow - sideLength;
+                    targetCol = 0;
                 }
-            } else
-            {
-                k = i;
-                l = j + 1;
+            } else {
+                targetRow = originRow;
+                targetCol = originCol + 1;
             }
-        } else
-        {
-            k = i;
-            if(j == e_end(i))
-                l = 0;
+        } else {
+            targetRow = originRow;
+            if (originCol == lastRowIndex(originRow))
+                targetCol = 0;
             else
-                l = j + 1;
+                targetCol = originCol + 1;
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
 
-    private Cell find_se(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(i == bottom_row)
-            {
-                if(j == e_end(i))
-                {
-                    k = middle_row;
-                    l = 0;
-                } else
-                {
-                    k = top_row;
-                    l = j + 1;
+    private Cell find_se(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originRow == bottomRow) {
+                if (originCol == lastRowIndex(originRow)) {
+                    targetRow = middleRow;
+                    targetCol = 0;
+                } else {
+                    targetRow = topRow;
+                    targetCol = originCol + 1;
                 }
-            } else
-            if(i >= middle_row)
-            {
-                if(j == e_end(i))
-                {
-                    k = (i - side) + 1;
-                    l = 0;
-                } else
-                {
-                    k = i + 1;
-                    l = j;
+            } else if (originRow >= middleRow) {
+                if (originCol == lastRowIndex(originRow)) {
+                    targetRow = (originRow - sideLength) + 1;
+                    targetCol = 0;
+                } else {
+                    targetRow = originRow + 1;
+                    targetCol = originCol;
                 }
-            } else
-            {
-                k = i + 1;
-                l = j + 1;
+            } else {
+                targetRow = originRow + 1;
+                targetCol = originCol + 1;
             }
-        } else
-        {
-            if(i == bottom_row)
-                k = top_row;
+        } else {
+            if (originRow == bottomRow)
+                targetRow = topRow;
             else
-                k = i + 1;
-            if(j == e_end(i))
-            {
-                if(i % 2 == 1)
-                    l = 0;
+                targetRow = originRow + 1;
+            if (originCol == lastRowIndex(originRow)) {
+                if (originRow % 2 == 1)
+                    targetCol = 0;
                 else
-                    l = j;
-            } else
-            {
-                l = j + i % 2;
+                    targetCol = originCol;
+            } else {
+                targetCol = originCol + originRow % 2;
             }
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
 
-    private Cell find_sw(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(i == bottom_row)
-            {
-                k = top_row;
-                l = j;
-            } else
-            if(i >= middle_row)
-            {
-                if(j == 0)
-                {
-                    k = (i - side) + 2;
-                    l = e_end(k);
-                } else
-                {
-                    k = i + 1;
-                    l = j - 1;
+    private Cell find_sw(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originRow == bottomRow) {
+                targetRow = topRow;
+                targetCol = originCol;
+            } else if (originRow >= middleRow) {
+                if (originCol == 0) {
+                    targetRow = (originRow - sideLength) + 2;
+                    targetCol = lastRowIndex(targetRow);
+                } else {
+                    targetRow = originRow + 1;
+                    targetCol = originCol - 1;
                 }
-            } else
-            {
-                k = i + 1;
-                l = j;
+            } else {
+                targetRow = originRow + 1;
+                targetCol = originCol;
             }
-        } else
-        {
-            if(i == bottom_row)
-                k = top_row;
+        } else {
+            if (originRow == bottomRow)
+                targetRow = topRow;
             else
-                k = i + 1;
-            if(j == 0)
-            {
-                if(i % 2 == 0)
-                    l = e_end(k);
+                targetRow = originRow + 1;
+            if (originCol == 0) {
+                if (originRow % 2 == 0)
+                    targetCol = lastRowIndex(targetRow);
                 else
-                    l = 0;
-            } else
-            {
-                l = (j - 1) + i % 2;
+                    targetCol = 0;
+            } else {
+                targetCol = (originCol - 1) + originRow % 2;
             }
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
 
-    private Cell find_w(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(j == 0)
-            {
-                if(i < middle_row)
-                    k = i + side;
+    private Cell find_w(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originCol == 0) {
+                if (originRow < middleRow)
+                    targetRow = originRow + sideLength;
                 else
-                    k = (i - side) + 1;
-                l = e_end(k);
-            } else
-            {
-                k = i;
-                l = j - 1;
+                    targetRow = (originRow - sideLength) + 1;
+                targetCol = lastRowIndex(targetRow);
+            } else {
+                targetRow = originRow;
+                targetCol = originCol - 1;
             }
-        } else
-        {
-            k = i;
-            if(j == 0)
-                l = e_end(i);
+        } else {
+            targetRow = originRow;
+            if (originCol == 0)
+                targetCol = lastRowIndex(originRow);
             else
-                l = j - 1;
+                targetCol = originCol - 1;
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
 
-    private Cell find_nw(int i, int j)
-    {
-        int k;
-        int l;
-        if(shape == HexLifeConstants.HEX)
-        {
-            if(i == top_row)
-            {
-                if(j == 0)
-                {
-                    k = middle_row;
-                    l = e_end(k);
-                } else
-                {
-                    k = bottom_row;
-                    l = j - 1;
+    private Cell find_nw(int originRow, int originCol) {
+        int targetRow;
+        int targetCol;
+        if (HEX.equals(shape)) {
+            if (originRow == topRow) {
+                if (originCol == 0) {
+                    targetRow = middleRow;
+                    targetCol = lastRowIndex(targetRow);
+                } else {
+                    targetRow = bottomRow;
+                    targetCol = originCol - 1;
                 }
-            } else
-            if(i <= middle_row)
-            {
-                if(j == 0)
-                {
-                    k = (i + side) - 1;
-                    l = e_end(k);
-                } else
-                {
-                    k = i - 1;
-                    l = j - 1;
+            } else if (originRow <= middleRow) {
+                if (originCol == 0) {
+                    targetRow = (originRow + sideLength) - 1;
+                    targetCol = lastRowIndex(targetRow);
+                } else {
+                    targetRow = originRow - 1;
+                    targetCol = originCol - 1;
                 }
-            } else
-            {
-                k = i - 1;
-                l = j;
+            } else {
+                targetRow = originRow - 1;
+                targetCol = originCol;
             }
-        } else
-        {
-            if(i == top_row)
-                k = bottom_row;
+        } else {
+            if (originRow == topRow)
+                targetRow = bottomRow;
             else
-                k = i - 1;
-            if(j == 0)
-            {
-                if(i % 2 == 0)
-                    l = e_end(k);
+                targetRow = originRow - 1;
+            if (originCol == 0) {
+                if (originRow % 2 == 0)
+                    targetCol = lastRowIndex(targetRow);
                 else
-                    l = 0;
-            } else
-            {
-                l = (j - 1) + i % 2;
+                    targetCol = 0;
+            } else {
+                targetCol = (originCol - 1) + originRow % 2;
             }
         }
-        return boardArray[k][l];
+        return boardArray[targetRow][targetCol];
     }
-
-    public Cell boardArray[][];
-    public int side;
-    public int cellCount;
-    public int diameter;
-    public String shape;
-    private int top_row;
-    private int middle_row;
-    private int bottom_row;
-    public int numberOfRows;
-    public int generation;
 }
