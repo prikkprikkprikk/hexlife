@@ -3,14 +3,43 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class HexLife extends JFrame implements Runnable, ActionListener, HexLifeConstants
-{
+public class HexLife extends JFrame implements Runnable, ActionListener, HexLifeConstants {
     private JPanel canvas;
+    final int fontSize = 10;
+    Font messageFont;
+    String boardShape;
+    int boardSize;
+    Board board;
+    int minSize;
+    int maxSize;
+    boolean boardChanged;
+    Thread lifeThread;
+    boolean frozen;
+    static final String ANIMATE = "animate";
+    Button animateButton;
+    static final String RANDOMIZE = "randomize";
+    Button randomizeButton;
+    static final String STEP = "step";
+    Button stepButton;
+    Label sizeLabel;
+    TextField sizeField;
+    static final String CHANGE = "change";
+    Button changeButton;
+    Label shapeLabel;
+    Checkbox rectShape;
+    Checkbox hexShape;
+    CheckboxGroup shapeGroup;
 
-    /**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
+    public HexLife() {
+        messageFont = new Font("Verdana", 0, 10);
+        boardShape = HexLifeConstants.RECT;
+        boardSize = 90;
+        board = new Board(boardShape, boardSize);
+        boardChanged = false;
+        frozen = true;
+        sizeLabel = new Label("Size:", 2);
+        shapeLabel = new Label("Shape:", 2);
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -20,21 +49,18 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
         });
     }
 
-	public void init()
-    {
-        if(boardShape == HexLifeConstants.RECT)
-        {
-            minSize = 10;
-            maxSize = 60;
-        } else
-        {
-            minSize = 7;
-            maxSize = 30;
+    public void init() {
+        if (boardShape == HexLifeConstants.RECT) {
+            minSize = MINRECTSIZE;
+            maxSize = MAXRECTSIZE;
+        } else {
+            minSize = MINHEXSIZE;
+            maxSize = MAXHEXSIZE;
         }
 
         // Set up the main frame
         setTitle("HexLife - Conway's Game of Life");
-        setSize(800, 600);
+        setSize(SCREEN_SIZE_X, SCREEN_SIZE_Y);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -84,12 +110,10 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
         add(canvas, BorderLayout.CENTER);
     }
 
-    public void actionPerformed(ActionEvent actionevent)
-    {
-        String s = actionevent.getActionCommand();
-        if(s == "animate")
-            if(frozen)
-            {
+    public void actionPerformed(ActionEvent actionevent) {
+        String actionCommand = actionevent.getActionCommand();
+        if (actionCommand == "animate")
+            if (frozen) {
                 frozen = false;
                 animateButton.setLabel("Stop");
                 randomizeButton.setEnabled(false);
@@ -98,8 +122,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
                 changeButton.setEnabled(false);
                 start();
                 return;
-            } else
-            {
+            } else {
                 frozen = true;
                 animateButton.setLabel("Animate");
                 randomizeButton.setEnabled(true);
@@ -109,176 +132,112 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
                 stop();
                 return;
             }
-        if(s == "randomize")
-        {
+        if (actionCommand == "randomize") {
             board.randomize();
             canvas.repaint();
             return;
         }
-        if(s == "step")
-        {
+        if (actionCommand == "step") {
             board.advance();
             canvas.repaint();
             return;
         }
-        if(s == "change")
-        {
+        if (actionCommand == "change") {
             boolean flag = false;
             Checkbox checkbox = shapeGroup.getSelectedCheckbox();
-            if(checkbox == rectShape)
-            {
-                if(boardShape == HexLifeConstants.HEX)
-                {
-                    minSize = 10;
-                    maxSize = 60;
+            if (checkbox == rectShape) {
+                if (boardShape == HexLifeConstants.HEX) {
+                    minSize = MINRECTSIZE;
+                    maxSize = MAXRECTSIZE;
                     boardShape = HexLifeConstants.RECT;
                     flag = true;
                 }
-            } else
-            if(boardShape == HexLifeConstants.RECT)
-            {
-                minSize = 7;
-                maxSize = 30;
+            } else if (boardShape == HexLifeConstants.RECT) {
+                minSize = MINHEXSIZE;
+                maxSize = MAXHEXSIZE;
                 boardShape = HexLifeConstants.HEX;
                 flag = true;
             }
-            String s1 = sizeField.getText();
-            int i = Integer.decode(s1).intValue();
-            if(flag)
-            {
-                if(i < minSize)
-                    i = minSize;
-                else
-                if(i > maxSize)
-                    i = maxSize;
-                boardSize = i;
+            String sizeFieldValue = sizeField.getText();
+            int requestedSize = Integer.decode(sizeFieldValue).intValue();
+            if (flag) {
+                if (requestedSize < minSize)
+                    requestedSize = minSize;
+                else if (requestedSize > maxSize)
+                    requestedSize = maxSize;
+                boardSize = requestedSize;
                 board = new Board(boardShape, boardSize);
                 sizeField.setText(String.valueOf(boardSize));
                 boardChanged = true;
                 canvas.repaint();
                 return;
             }
-            if(i < minSize || i > maxSize)
-            {
+            if (requestedSize < minSize || requestedSize > maxSize) {
                 sizeField.setText(String.valueOf(boardSize));
                 return;
             }
-            boardSize = i;
+            boardSize = requestedSize;
             board = new Board(boardShape, boardSize);
             boardChanged = true;
             canvas.repaint();
         }
     }
 
-    public void start()
-    {
-        if(!frozen)
-        {
-            if(lifeThread == null)
+    public void start() {
+        if (!frozen) {
+            if (lifeThread == null)
                 lifeThread = new Thread(this);
             lifeThread.start();
         }
     }
 
-    public void stop()
-    {
+    public void stop() {
         lifeThread = null;
         canvas.repaint();
     }
 
-    public void run()
-    {
+    public void run() {
         Thread.currentThread().setPriority(1);
-        for(Thread thread = Thread.currentThread(); thread == lifeThread;)
-        {
+        for (Thread thread = Thread.currentThread(); thread == lifeThread;) {
             board.advance();
             canvas.repaint();
-            try
-            {
+            try {
                 Thread.sleep(10L);
-            }
-            catch(InterruptedException _ex)
-            {
+            } catch (InterruptedException _ex) {
                 return;
             }
         }
-
     }
 
-    public void setDrawClip(Graphics g)
-    {
+    public void setDrawClip(Graphics g) {
         g.setClip(1, 1, canvas.getSize().width - 2, canvas.getSize().height - 2);
     }
 
-    public void displayMessage(Graphics g, String s)
-    {
+    public void displayMessage(Graphics g, String message) {
         g.setColor(Color.white);
         g.fillRect(1, 1, canvas.getSize().width - 2, 25);
         g.setFont(messageFont);
         g.setColor(Color.black);
-        g.drawString(s, 10, 20);
+        g.drawString(message, 10, 20);
     }
 
-    public void paintCanvas(Graphics g)
-    {
+    public void paintCanvas(Graphics g) {
         g.setColor(Color.black);
         g.drawRect(0, 0, canvas.getSize().width - 1, canvas.getSize().height - 1);
         g.setColor(Color.white);
         g.fillRect(1, 1, canvas.getSize().width - 2, canvas.getSize().height - 2);
         setDrawClip(g);
 
-        if(boardChanged)
-        {
+        if (boardChanged) {
             boardChanged = false;
         }
         displayMessage(g, "Gen: " + board.generation);
-        for(int i = 0; i < board.numberOfRows; i++)
-        {
-            for(int j = 0; j < board.boardArray[i].length; j++)
-            {
-                Cell cell = board.boardArray[i][j];
+        for (int currentRow = 0; currentRow < board.numberOfRows; currentRow++) {
+            for (int currentCol = 0; currentCol < board.boardArray[currentRow].length; currentCol++) {
+                Cell cell = board.boardArray[currentRow][currentCol];
                 g.setColor(cell.cellColor);
-                g.fillOval(cell.screen_x - 4, cell.screen_y - 4, 8, 8);
+                g.fillOval(cell.screen_x - CELLRADIUS, cell.screen_y - CELLRADIUS, (CELLRADIUS * 2), (CELLRADIUS * 2));
             }
-
         }
-
     }
-
-    public HexLife()
-    {
-        messageFont = new Font("Verdana", 0, 10);
-        boardShape = HexLifeConstants.RECT;
-        boardSize = 60;
-        board = new Board(boardShape, boardSize);
-        boardChanged = false;
-        frozen = true;
-        sizeLabel = new Label("Size:", 2);
-        shapeLabel = new Label("Shape:", 2);
-    }
-
-    final int fontSize = 10;
-    Font messageFont;
-    String boardShape;
-    int boardSize;
-    Board board;
-    int minSize;
-    int maxSize;
-    boolean boardChanged;
-    Thread lifeThread;
-    boolean frozen;
-    static final String ANIMATE = "animate";
-    Button animateButton;
-    static final String RANDOMIZE = "randomize";
-    Button randomizeButton;
-    static final String STEP = "step";
-    Button stepButton;
-    Label sizeLabel;
-    TextField sizeField;
-    static final String CHANGE = "change";
-    Button changeButton;
-    Label shapeLabel;
-    Checkbox rectShape;
-    Checkbox hexShape;
-    CheckboxGroup shapeGroup;
 }

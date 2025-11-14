@@ -1,75 +1,67 @@
 import java.awt.Color;
 
-public class Neighbours
-    implements HexLifeConstants
-{
+public class Neighbours implements HexLifeConstants {
 
-    public Neighbours()
-    {
-        neighbour = new Cell[6];
+    public Neighbours() {
+        neighbours = new Cell[6];
     }
 
-    public void setNeighbours(Cell cell, Cell cell1, Cell cell2, Cell cell3, Cell cell4, Cell cell5)
-    {
-        neighbour[0] = cell;
-        neighbour[1] = cell1;
-        neighbour[2] = cell2;
-        neighbour[3] = cell3;
-        neighbour[4] = cell4;
-        neighbour[5] = cell5;
+    public void setNeighbours(Cell cell, Cell cell1, Cell cell2, Cell cell3, Cell cell4, Cell cell5) {
+        neighbours[0] = cell;
+        neighbours[1] = cell1;
+        neighbours[2] = cell2;
+        neighbours[3] = cell3;
+        neighbours[4] = cell4;
+        neighbours[5] = cell5;
     }
 
-    public int getNumberOfNeighbours()
-    {
-        int i = 0;
-        for(int j = 0; j < 6; j++)
-            if(neighbour[j].alive)
-                i++;
+    public int getNumberOfNeighbours() {
+        int numberOfNeighbours = 0;
+        for (int currentNeighbour = 0; currentNeighbour < 6; currentNeighbour++)
+            if (neighbours[currentNeighbour].alive)
+                numberOfNeighbours++;
 
-        return i;
+        return numberOfNeighbours;
     }
 
-    public Color getAverageColor()
-    {
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        int l = 0;
-        for(int i1 = 0; i1 < 6; i1++)
-            if(neighbour[i1].alive)
-            {
-                i++;
-                j += neighbour[i1].cellColor.getRed();
-                k += neighbour[i1].cellColor.getBlue();
-                l += neighbour[i1].cellColor.getGreen();
+    public Color getAverageColor() {
+        int numberOfNeighbours = 0;
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        for (int i1 = 0; i1 < 6; i1++)
+            if (neighbours[i1].alive) {
+                numberOfNeighbours++;
+                r += neighbours[i1].cellColor.getRed();
+                g += neighbours[i1].cellColor.getGreen();
+                b += neighbours[i1].cellColor.getBlue();
             }
 
-        if(i == 0)
+        if (numberOfNeighbours == 0)
             return HexLifeConstants.COLOR0;
-        int j1 = j / i;
-        int k1 = k / i;
-        int l1 = l / i;
-        int i2 = j + k + l;
-        int j2 = (j1 + k1 + l1) * i;
-        int k2 = i2 - j2;
-        if(k2 != 0)
-            switch((int)Math.floor(Math.random() * 3D))
-            {
-            case 1: // '\001'
-                j1 += k2;
-                break;
+        int rAvg = r / numberOfNeighbours;
+        int gAvg = g / numberOfNeighbours;
+        int bAvg = b / numberOfNeighbours;
+        int rgbSum = r + g + b;
+        int rgbAvgSumProduct = (rAvg + gAvg + bAvg) * numberOfNeighbours;
+        int sumAvgDiff = rgbSum - rgbAvgSumProduct;
+        if (sumAvgDiff != 0)
+            switch ((int) Math.floor(Math.random() * 3D)) {
+                case 0:
+                    rAvg += sumAvgDiff;
+                    break;
 
-            case 2: // '\002'
-                k1 += k2;
-                break;
+                case 1:
+                    gAvg += sumAvgDiff;
+                    break;
 
-            case 3: // '\003'
-                l1 += k2;
-                break;
+                case 2:
+                    bAvg += sumAvgDiff;
+                    break;
             }
-        Color color = new Color(j1, k1, l1);
+        Color color = new Color(rAvg, gAvg, bAvg);
         return color;
     }
 
-    public Cell neighbour[];
+    public Cell neighbours[];
 }

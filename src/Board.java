@@ -4,30 +4,30 @@ public class Board implements HexLifeConstants {
     public int sideLength;
     public int diameter;
     public String shape;
-    private int top_row;
-    private int middle_row;
-    private int bottom_row;
+    private int topRow = 0;
+    private int middleRow;
+    private int bottomRow;
     public int numberOfRows;
     public int generation;
 
     public Board(String requestedShape, int requestedSideLength) {
         shape = requestedShape;
-        if (shape == HexLifeConstants.RECT)
+        if (shape.equals(RECT))
             makeRectBoard(requestedSideLength);
-        else if (shape == HexLifeConstants.HEX)
+        else if (shape.equals(HEX))
             makeHexBoard(requestedSideLength);
         findNeighbours();
         generation = 1;
     }
 
     public void advance() {
-        for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
                 boardArray[currentRow][currentCol].foretellFuture();
 
         }
 
-        for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
                 boardArray[currentRow][currentCol].realizeFuture();
         }
@@ -42,15 +42,15 @@ public class Board implements HexLifeConstants {
             sideLength = MAXRECTSIZE;
         else
             sideLength = requestedSideLength;
-        bottom_row = (int) ((double) sideLength / HEX_HEIGHT_TO_WIDTH_RATIO);
-        bottom_row = bottom_row - (bottom_row + 1) % 2;
-        numberOfRows = bottom_row + 1;
+        bottomRow = (int) ((double) sideLength / HEX_HEIGHT_TO_WIDTH_RATIO);
+        bottomRow = bottomRow - (bottomRow + 1) % 2;
+        numberOfRows = bottomRow + 1;
         boardArray = new Cell[numberOfRows][];
-        for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             boardArray[currentRow] = new Cell[sideLength];
             for (int currentCol = 0; currentCol < sideLength; currentCol++) {
-                int yPos = 320 - 8 * ((numberOfRows / 2 - currentRow) + 1);
-                int xPos = 320 - 5 * (sideLength - currentCol * 2 - 1 - currentRow % 2);
+                int yPos = SCREEN_CENTER_Y - 8 * ((numberOfRows / 2 - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - 5 * (sideLength - currentCol * 2 - 1 - currentRow % 2);
                 boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
         }
@@ -65,8 +65,8 @@ public class Board implements HexLifeConstants {
             sideLength = requestedSideLength;
         diameter = sideLength * 2 - 1;
         numberOfRows = diameter;
-        middle_row = sideLength - 1;
-        bottom_row = diameter - 1;
+        middleRow = sideLength - 1;
+        bottomRow = diameter - 1;
         int currentRowLength = sideLength;
         int rowLengthChangeStep = 1;
         int horizontalOffset = sideLength;
@@ -74,8 +74,8 @@ public class Board implements HexLifeConstants {
         for (int currentRow = 0; currentRow < diameter; currentRow++) {
             boardArray[currentRow] = new Cell[currentRowLength];
             for (int currentCol = 0; currentCol < currentRowLength; currentCol++) {
-                int yPos = 320 - 8 * ((sideLength - currentRow) + 1);
-                int xPos = 320 - 5 * (diameter - horizontalOffset - currentCol * 2);
+                int yPos = SCREEN_CENTER_Y - 8 * ((sideLength - currentRow) + 1);
+                int xPos = SCREEN_CENTER_X - 5 * (diameter - horizontalOffset - currentCol * 2);
                 boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
 
@@ -88,7 +88,7 @@ public class Board implements HexLifeConstants {
     }
 
     public void randomize() {
-        for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             int lastRowIndex = lastRowIndex(currentRow);
             for (int currentCol = 0; currentCol <= lastRowIndex; currentCol++)
                 boardArray[currentRow][currentCol].randomize();
@@ -98,7 +98,7 @@ public class Board implements HexLifeConstants {
     }
 
     private void findNeighbours() {
-        for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
+        for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             int lastRowIndex = lastRowIndex(currentRow);
             for (int currentCol = 0; currentCol <= lastRowIndex; currentCol++)
                 boardArray[currentRow][currentCol].neighbours.setNeighbours(find_ne(currentRow, currentCol),
@@ -116,10 +116,10 @@ public class Board implements HexLifeConstants {
         int targetRow;
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
-            if (originRow == top_row) {
-                targetRow = bottom_row;
+            if (originRow == topRow) {
+                targetRow = bottomRow;
                 targetCol = originCol;
-            } else if (originRow <= middle_row) {
+            } else if (originRow <= middleRow) {
                 if (originCol == lastRowIndex(originRow)) {
                     targetRow = (originRow + sideLength) - 2;
                     targetCol = 0;
@@ -132,8 +132,8 @@ public class Board implements HexLifeConstants {
                 targetCol = originCol + 1;
             }
         } else {
-            if (originRow == top_row) {
-                targetRow = bottom_row;
+            if (originRow == topRow) {
+                targetRow = bottomRow;
                 targetCol = originCol;
             } else {
                 targetRow = originRow - 1;
@@ -155,7 +155,7 @@ public class Board implements HexLifeConstants {
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
             if (originCol == lastRowIndex(originRow)) {
-                if (originRow <= middle_row) {
+                if (originRow <= middleRow) {
                     targetRow = (originRow + sideLength) - 1;
                     targetCol = 0;
                 } else {
@@ -180,15 +180,15 @@ public class Board implements HexLifeConstants {
         int targetRow;
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
-            if (originRow == bottom_row) {
+            if (originRow == bottomRow) {
                 if (originCol == lastRowIndex(originRow)) {
-                    targetRow = middle_row;
+                    targetRow = middleRow;
                     targetCol = 0;
                 } else {
-                    targetRow = top_row;
+                    targetRow = topRow;
                     targetCol = originCol + 1;
                 }
-            } else if (originRow >= middle_row) {
+            } else if (originRow >= middleRow) {
                 if (originCol == lastRowIndex(originRow)) {
                     targetRow = (originRow - sideLength) + 1;
                     targetCol = 0;
@@ -201,8 +201,8 @@ public class Board implements HexLifeConstants {
                 targetCol = originCol + 1;
             }
         } else {
-            if (originRow == bottom_row)
-                targetRow = top_row;
+            if (originRow == bottomRow)
+                targetRow = topRow;
             else
                 targetRow = originRow + 1;
             if (originCol == lastRowIndex(originRow)) {
@@ -221,10 +221,10 @@ public class Board implements HexLifeConstants {
         int targetRow;
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
-            if (originRow == bottom_row) {
-                targetRow = top_row;
+            if (originRow == bottomRow) {
+                targetRow = topRow;
                 targetCol = originCol;
-            } else if (originRow >= middle_row) {
+            } else if (originRow >= middleRow) {
                 if (originCol == 0) {
                     targetRow = (originRow - sideLength) + 2;
                     targetCol = lastRowIndex(targetRow);
@@ -237,8 +237,8 @@ public class Board implements HexLifeConstants {
                 targetCol = originCol;
             }
         } else {
-            if (originRow == bottom_row)
-                targetRow = top_row;
+            if (originRow == bottomRow)
+                targetRow = topRow;
             else
                 targetRow = originRow + 1;
             if (originCol == 0) {
@@ -258,7 +258,7 @@ public class Board implements HexLifeConstants {
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
             if (originCol == 0) {
-                if (originRow < middle_row)
+                if (originRow < middleRow)
                     targetRow = originRow + sideLength;
                 else
                     targetRow = (originRow - sideLength) + 1;
@@ -281,15 +281,15 @@ public class Board implements HexLifeConstants {
         int targetRow;
         int targetCol;
         if (shape == HexLifeConstants.HEX) {
-            if (originRow == top_row) {
+            if (originRow == topRow) {
                 if (originCol == 0) {
-                    targetRow = middle_row;
+                    targetRow = middleRow;
                     targetCol = lastRowIndex(targetRow);
                 } else {
-                    targetRow = bottom_row;
+                    targetRow = bottomRow;
                     targetCol = originCol - 1;
                 }
-            } else if (originRow <= middle_row) {
+            } else if (originRow <= middleRow) {
                 if (originCol == 0) {
                     targetRow = (originRow + sideLength) - 1;
                     targetCol = lastRowIndex(targetRow);
@@ -302,8 +302,8 @@ public class Board implements HexLifeConstants {
                 targetCol = originCol;
             }
         } else {
-            if (originRow == top_row)
-                targetRow = bottom_row;
+            if (originRow == topRow)
+                targetRow = bottomRow;
             else
                 targetRow = originRow - 1;
             if (originCol == 0) {
