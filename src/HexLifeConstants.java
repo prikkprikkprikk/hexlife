@@ -1,10 +1,9 @@
 import java.awt.Color;
 
 public interface HexLifeConstants {
-
     public static final double HEX_HEIGHT_TO_WIDTH_RATIO = Math.sqrt(3) / 2;
-    public static final String RECT = new String("rect");
-    public static final String HEX = new String("hex");
+    public static final String RECT = "rect";
+    public static final String HEX = "hex";
     public static final int MINHEXSIZE = 7;
     public static final int MAXHEXSIZE = 100;
     public static final int MINRECTSIZE = 10;
@@ -26,5 +25,4 @@ public interface HexLifeConstants {
     public static final Color COLOR1 = new Color(0, 200, 0);
     public static final Color COLOR2 = new Color(0, 0, 200);
     public static final int DELAY = 10;
-
 }
