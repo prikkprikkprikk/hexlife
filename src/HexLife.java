@@ -50,7 +50,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     }
 
     public void init() {
-        if (boardShape == HexLifeConstants.RECT) {
+        if (RECT.equals(boardShape)) {
             minSize = MINRECTSIZE;
             maxSize = MAXRECTSIZE;
         } else {
@@ -112,7 +112,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
 
     public void actionPerformed(ActionEvent actionevent) {
         String actionCommand = actionevent.getActionCommand();
-        if (actionCommand == "animate")
+        if ("animate".equals(actionCommand))
             if (frozen) {
                 frozen = false;
                 animateButton.setLabel("Stop");
@@ -132,27 +132,27 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
                 stop();
                 return;
             }
-        if (actionCommand == "randomize") {
+        if ("randomize".equals(actionCommand)) {
             board.randomize();
             canvas.repaint();
             return;
         }
-        if (actionCommand == "step") {
+        if ("step".equals(actionCommand)) {
             board.advance();
             canvas.repaint();
             return;
         }
-        if (actionCommand == "change") {
+        if ("change".equals(actionCommand)) {
             boolean flag = false;
             Checkbox checkbox = shapeGroup.getSelectedCheckbox();
             if (checkbox == rectShape) {
-                if (boardShape == HexLifeConstants.HEX) {
+                if (HEX.equals(boardShape)) {
                     minSize = MINRECTSIZE;
                     maxSize = MAXRECTSIZE;
                     boardShape = HexLifeConstants.RECT;
                     flag = true;
                 }
-            } else if (boardShape == HexLifeConstants.RECT) {
+            } else if (RECT.equals(boardShape)) {
                 minSize = MINHEXSIZE;
                 maxSize = MAXHEXSIZE;
                 boardShape = HexLifeConstants.HEX;
@@ -197,12 +197,12 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     }
 
     public void run() {
-        Thread.currentThread().setPriority(1);
-        for (Thread thread = Thread.currentThread(); thread == lifeThread;) {
+        Thread currentThread = Thread.currentThread();
+        while (currentThread == lifeThread) {
             board.advance();
             canvas.repaint();
             try {
-                Thread.sleep(10L);
+                Thread.sleep(DELAY);
             } catch (InterruptedException _ex) {
                 return;
             }
@@ -236,7 +236,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
             for (int currentCol = 0; currentCol < board.boardArray[currentRow].length; currentCol++) {
                 Cell cell = board.boardArray[currentRow][currentCol];
                 g.setColor(cell.cellColor);
-                g.fillOval(cell.screen_x - CELLRADIUS, cell.screen_y - CELLRADIUS, (CELLRADIUS * 2), (CELLRADIUS * 2));
+                g.fillOval(cell.screenX - CELLRADIUS, cell.screenY - CELLRADIUS, (CELLRADIUS * 2), (CELLRADIUS * 2));
             }
         }
     }
