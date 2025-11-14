@@ -12,9 +12,9 @@ public class Board implements HexLifeConstants {
 
     public Board(String requestedShape, int requestedSideLength) {
         shape = requestedShape;
-        if (shape.equals(RECT))
+        if (RECT.equals(shape))
             makeRectBoard(requestedSideLength);
-        else if (shape.equals(HEX))
+        else if (HEX.equals(shape))
             makeHexBoard(requestedSideLength);
         findNeighbours();
         generation = 1;
@@ -115,7 +115,7 @@ public class Board implements HexLifeConstants {
     private Cell find_ne(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originRow == topRow) {
                 targetRow = bottomRow;
                 targetCol = originCol;
@@ -153,7 +153,7 @@ public class Board implements HexLifeConstants {
     private Cell find_e(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originCol == lastRowIndex(originRow)) {
                 if (originRow <= middleRow) {
                     targetRow = (originRow + sideLength) - 1;
@@ -179,7 +179,7 @@ public class Board implements HexLifeConstants {
     private Cell find_se(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originRow == bottomRow) {
                 if (originCol == lastRowIndex(originRow)) {
                     targetRow = middleRow;
@@ -220,7 +220,7 @@ public class Board implements HexLifeConstants {
     private Cell find_sw(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originRow == bottomRow) {
                 targetRow = topRow;
                 targetCol = originCol;
@@ -256,7 +256,7 @@ public class Board implements HexLifeConstants {
     private Cell find_w(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originCol == 0) {
                 if (originRow < middleRow)
                     targetRow = originRow + sideLength;
@@ -280,7 +280,7 @@ public class Board implements HexLifeConstants {
     private Cell find_nw(int originRow, int originCol) {
         int targetRow;
         int targetCol;
-        if (shape == HexLifeConstants.HEX) {
+        if (HEX.equals(shape)) {
             if (originRow == topRow) {
                 if (originCol == 0) {
                     targetRow = middleRow;
