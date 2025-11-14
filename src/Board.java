@@ -2,7 +2,6 @@ public class Board implements HexLifeConstants {
 
     public Cell boardArray[][];
     public int sideLength;
-    public int cellCount;
     public int diameter;
     public String shape;
     private int top_row;
@@ -37,17 +36,16 @@ public class Board implements HexLifeConstants {
     }
 
     private void makeRectBoard(int requestedSideLength) {
-        if (requestedSideLength < 10)
-            sideLength = 10;
-        else if (requestedSideLength > 60)
-            sideLength = 60;
+        if (requestedSideLength < MINRECTSIZE)
+            sideLength = MINRECTSIZE;
+        else if (requestedSideLength > MAXRECTSIZE)
+            sideLength = MAXRECTSIZE;
         else
             sideLength = requestedSideLength;
-        bottom_row = (int) ((double) sideLength / 0.86599999999999999D);
+        bottom_row = (int) ((double) sideLength / HEX_HEIGHT_TO_WIDTH_RATIO);
         bottom_row = bottom_row - (bottom_row + 1) % 2;
-        cellCount = sideLength ^ bottom_row + 1;
         numberOfRows = bottom_row + 1;
-        boardArray = new Cell[bottom_row + 1][];
+        boardArray = new Cell[numberOfRows][];
         for (int currentRow = 0; currentRow <= bottom_row; currentRow++) {
             boardArray[currentRow] = new Cell[sideLength];
             for (int currentCol = 0; currentCol < sideLength; currentCol++) {
@@ -59,33 +57,32 @@ public class Board implements HexLifeConstants {
     }
 
     private void makeHexBoard(int requestedSideLength) {
-        if (requestedSideLength < 7)
-            sideLength = 7;
-        else if (requestedSideLength > 30)
-            sideLength = 30;
+        if (requestedSideLength < MINHEXSIZE)
+            sideLength = MINHEXSIZE;
+        else if (requestedSideLength > MAXHEXSIZE)
+            sideLength = MAXHEXSIZE;
         else
             sideLength = requestedSideLength;
         diameter = sideLength * 2 - 1;
         numberOfRows = diameter;
-        cellCount = sideLength * (sideLength - 1) * 3 - 1;
         middle_row = sideLength - 1;
         bottom_row = diameter - 1;
-        int j = sideLength;
-        byte byte0 = 1;
-        int i1 = sideLength;
+        int currentRowLength = sideLength;
+        int rowLengthChangeStep = 1;
+        int horizontalOffset = sideLength;
         boardArray = new Cell[numberOfRows][];
-        for (int j1 = 0; j1 < diameter; j1++) {
-            boardArray[j1] = new Cell[j];
-            for (int k1 = 0; k1 < j; k1++) {
-                int k = 320 - 8 * ((sideLength - j1) + 1);
-                int l = 320 - 5 * (diameter - i1 - k1 * 2);
-                boardArray[j1][k1] = new Cell(k, l);
+        for (int currentRow = 0; currentRow < diameter; currentRow++) {
+            boardArray[currentRow] = new Cell[currentRowLength];
+            for (int currentCol = 0; currentCol < currentRowLength; currentCol++) {
+                int yPos = 320 - 8 * ((sideLength - currentRow) + 1);
+                int xPos = 320 - 5 * (diameter - horizontalOffset - currentCol * 2);
+                boardArray[currentRow][currentCol] = new Cell(yPos, xPos);
             }
 
-            if (j == diameter)
-                byte0 = -1;
-            j += byte0;
-            i1 -= byte0;
+            if (currentRowLength == diameter)
+                rowLengthChangeStep = -1;
+            currentRowLength += rowLengthChangeStep;
+            horizontalOffset -= rowLengthChangeStep;
         }
 
     }
@@ -95,7 +92,6 @@ public class Board implements HexLifeConstants {
             int i = lastRowIndex(j);
             for (int k = 0; k <= i; k++)
                 boardArray[j][k].randomize();
-
         }
 
         generation = 1;
