@@ -2,20 +2,20 @@ import java.awt.Color;
 
 public interface HexLifeConstants {
 
-    public static final int CELLRADIUS = 5;
+    public static final double HEX_HEIGHT_TO_WIDTH_RATIO = Math.sqrt(3) / 2;
+    public static final String RECT = new String("rect");
     public static final String HEX = new String("hex");
     public static final int MINHEXSIZE = 7;
     public static final int MAXHEXSIZE = 100;
-    public static final double HEX_HEIGHT_TO_WIDTH_RATIO = Math.sqrt(3) / 2;
-    public static final String RECT = new String("rect");
     public static final int MINRECTSIZE = 10;
     public static final int MAXRECTSIZE = 150;
+    public static final int CELLRADIUS = 5;
     public static final int GRIDSIZE_X = 5;
+    public static final int GRIDSIZE_Y = 8;
     public static final int SCREEN_SIZE_X = 1000;
     public static final int SCREEN_SIZE_Y = 1000;
     public static final int SCREEN_CENTER_X = SCREEN_SIZE_X / 2;
     public static final int SCREEN_CENTER_Y = SCREEN_SIZE_Y / 2;
-    public static final int GRIDSIZE_Y = 8;
     public static final int NE = 0;
     public static final int E = 1;
     public static final int SE = 2;
