@@ -4,23 +4,23 @@ public class Cell implements HexLifeConstants {
 
     public boolean alive;
     public Color cellColor;
-    public int screen_x;
-    public int screen_y;
+    public int screenX;
+    public int screenY;
     public Neighbours neighbours;
     public boolean futureLife;
     public Color futureColor;
 
     public Cell(int yPos, int xPos) {
         neighbours = new Neighbours();
-        screen_y = yPos;
-        screen_x = xPos;
+        screenY = yPos;
+        screenX = xPos;
         randomize();
     }
 
     public Cell(int yPos, int xPos, Color color) {
         neighbours = new Neighbours();
-        screen_y = yPos;
-        screen_x = xPos;
+        screenY = yPos;
+        screenX = xPos;
         cellColor = color;
         alive = true;
     }
@@ -31,48 +31,44 @@ public class Cell implements HexLifeConstants {
             int g = (int) (Math.ceil(Math.random() * 2D) * 100D);
             int b = (int) (Math.ceil(Math.random() * 2D) * 100D);
             switch ((int) Math.ceil(Math.random() * 3D)) {
-                case 1: // '\001'
+                case 0:
                     r = 0;
                     break;
 
-                case 2: // '\002'
+                case 1:
                     g = 0;
                     break;
 
-                case 3: // '\003'
+                case 2:
                     b = 0;
                     break;
             }
             cellColor = new Color(r, g, b);
             alive = true;
-            return;
         } else {
             cellColor = COLOR0;
             alive = false;
-            return;
         }
     }
 
     public void foretellFuture() {
         int numberOfNeighbours = neighbours.getNumberOfNeighbours();
-        if (alive)
+        if (alive) {
             if (numberOfNeighbours < 2 || numberOfNeighbours > 3) {
                 futureLife = false;
                 futureColor = COLOR0;
-                return;
             } else {
                 futureLife = true;
                 futureColor = cellColor;
-                return;
             }
+            return;
+        }
         if (numberOfNeighbours == 3) {
             futureLife = true;
             futureColor = neighbours.getAverageColor();
-            return;
         } else {
             futureLife = false;
             futureColor = COLOR0;
-            return;
         }
     }
 
