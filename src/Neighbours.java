@@ -1,6 +1,7 @@
 import java.awt.Color;
 
 public class Neighbours implements HexLifeConstants {
+    public Cell neighbours[];
 
     public Neighbours() {
         neighbours = new Cell[6];
@@ -29,12 +30,12 @@ public class Neighbours implements HexLifeConstants {
         int r = 0;
         int g = 0;
         int b = 0;
-        for (int i1 = 0; i1 < 6; i1++)
-            if (neighbours[i1].alive) {
+        for (int currentNeighbour = 0; currentNeighbour < 6; currentNeighbour++)
+            if (neighbours[currentNeighbour].alive) {
                 numberOfNeighbours++;
-                r += neighbours[i1].cellColor.getRed();
-                g += neighbours[i1].cellColor.getGreen();
-                b += neighbours[i1].cellColor.getBlue();
+                r += neighbours[currentNeighbour].cellColor.getRed();
+                g += neighbours[currentNeighbour].cellColor.getGreen();
+                b += neighbours[currentNeighbour].cellColor.getBlue();
             }
 
         if (numberOfNeighbours == 0)
@@ -62,6 +63,4 @@ public class Neighbours implements HexLifeConstants {
         Color color = new Color(rAvg, gAvg, bAvg);
         return color;
     }
-
-    public Cell neighbours[];
 }

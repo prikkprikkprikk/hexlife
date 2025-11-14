@@ -31,7 +31,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     CheckboxGroup shapeGroup;
 
     public HexLife() {
-        messageFont = new Font("Verdana", 0, 10);
+        messageFont = new Font("Verdana", 0, fontSize);
         boardShape = HexLifeConstants.RECT;
         boardSize = 90;
         board = new Board(boardShape, boardSize);
