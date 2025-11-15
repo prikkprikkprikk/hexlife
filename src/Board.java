@@ -11,6 +11,9 @@ public class Board implements HexLifeConstants {
     public int generation;
 
     public Board(String requestedShape, int requestedSideLength) {
+        PerformanceMonitor perf = PerformanceMonitor.getInstance();
+        long initStartTime = System.nanoTime();
+
         shape = requestedShape;
         if (RECT.equals(shape))
             makeRectBoard(requestedSideLength);
@@ -18,21 +21,32 @@ public class Board implements HexLifeConstants {
             makeHexBoard(requestedSideLength);
         findNeighbours();
         generation = 1;
+
+        long initElapsedMs = (System.nanoTime() - initStartTime) / 1_000_000;
+        perf.recordBoardInit(initElapsedMs);
     }
 
     public void advance() {
+        PerformanceMonitor perf = PerformanceMonitor.getInstance();
+        long generationStartTime = System.nanoTime();
+
+        // Phase 1: Calculate future state for all cells
         for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
                 boardArray[currentRow][currentCol].foretellFuture();
-
         }
 
+        // Phase 2: Apply predicted state for all cells
         for (int currentRow = 0; currentRow <= bottomRow; currentRow++) {
             for (int currentCol = 0; currentCol <= lastRowIndex(currentRow); currentCol++)
                 boardArray[currentRow][currentCol].realizeFuture();
         }
 
         generation++;
+
+        // Record overall generation timing
+        long elapsedMs = (System.nanoTime() - generationStartTime) / 1_000_000;
+        perf.recordGeneration(elapsedMs);
     }
 
     private void makeRectBoard(int requestedSideLength) {

@@ -42,14 +42,27 @@ The hexagonal grid wrapping logic in `find_ne()` through `find_nw()` is intentio
 - This logic is correct and shouldn't be "optimized" - it's as readable as it can be for this complexity
 
 ## How to Run
+See README.md for current usage instructions (launch modes, debug flags, performance benchmarking).
+
+Quick reference:
 ```bash
-./run.sh
+./run.sh              # Normal mode (launches in background)
+./run.sh --debug      # Debug mode with performance monitoring
+cd bin && java PerformanceBenchmark  # Run performance tests
 ```
-Or manually:
-```bash
-javac -d bin src/*.java
-cd bin && java HexLife
-```
+
+## Important: Updating Documentation
+**When adding features that affect how users run the app**, always update README.md:
+- New command-line arguments or flags
+- New execution modes or options
+- New ways to run the application
+- Performance testing instructions
+- Debug/development tools accessible to users
+
+This keeps the README as the single source of truth for users, while CLAUDE.md remains for internal architecture and development notes.
+
+## Git Repository
+User has full control over the git repository. Do not suggest or execute git commands. The user will handle all git operations (commit, push, branching) themselves.
 
 ## Testing
 No unit tests exist. Candidates for testing:

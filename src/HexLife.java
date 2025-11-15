@@ -15,6 +15,7 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     boolean boardChanged;
     Thread lifeThread;
     boolean frozen;
+    boolean debugMode;
     static final String ANIMATE = "animate";
     Button animateButton;
     static final String RANDOMIZE = "randomize";
@@ -29,6 +30,8 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     Checkbox rectShape;
     Checkbox hexShape;
     CheckboxGroup shapeGroup;
+    static final String REPORT = "report";
+    Button reportButton;
 
     public HexLife() {
         messageFont = new Font("Verdana", 0, fontSize);
@@ -42,11 +45,29 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     }
 
     public static void main(String[] args) {
+        boolean debugMode = false;
+        for (String arg : args) {
+            if ("--debug".equals(arg) || "-d".equals(arg)) {
+                debugMode = true;
+                break;
+            }
+        }
+
+        final boolean finalDebugMode = debugMode;
         SwingUtilities.invokeLater(() -> {
             HexLife game = new HexLife();
+            game.setDebugMode(finalDebugMode);
             game.init();
             game.setVisible(true);
         });
+    }
+
+    public void setDebugMode(boolean debug) {
+        this.debugMode = debug;
+        if (debug) {
+            PerformanceMonitor.getInstance().setLoggingEnabled(true);
+            System.out.println("Debug mode enabled - Performance monitoring active");
+        }
     }
 
     public void init() {
@@ -93,6 +114,14 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
         changeButton.setActionCommand("change");
         changeButton.addActionListener(this);
         controlPanel.add(changeButton);
+
+        // Only add Report button in debug mode
+        if (debugMode) {
+            reportButton = new Button("Report");
+            reportButton.setActionCommand("report");
+            reportButton.addActionListener(this);
+            controlPanel.add(reportButton);
+        }
 
         add(controlPanel, BorderLayout.NORTH);
 
@@ -181,6 +210,18 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
             boardChanged = true;
             canvas.repaint();
         }
+        if ("report".equals(actionCommand)) {
+            PerformanceMonitor perf = PerformanceMonitor.getInstance();
+            System.out.println("\n========== PERFORMANCE REPORT ==========");
+            System.out.println("Board Shape: " + boardShape);
+            System.out.println("Board Size: " + boardSize);
+            System.out.printf("Board initialization: %d ms\n", perf.getLastBoardInitTime());
+            perf.printGenerationStats();
+            perf.printPaintStats();
+            perf.printMemoryStats();
+            System.out.println("=========================================\n");
+            return;
+        }
     }
 
     public void start() {
@@ -222,6 +263,8 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
     }
 
     public void paintCanvas(Graphics g) {
+        long paintStartTime = System.nanoTime();
+
         g.setColor(Color.black);
         g.drawRect(0, 0, canvas.getSize().width - 1, canvas.getSize().height - 1);
         g.setColor(Color.white);
@@ -239,5 +282,8 @@ public class HexLife extends JFrame implements Runnable, ActionListener, HexLife
                 g.fillOval(cell.screenX - CELLRADIUS, cell.screenY - CELLRADIUS, (CELLRADIUS * 2), (CELLRADIUS * 2));
             }
         }
+
+        long paintElapsedMs = (System.nanoTime() - paintStartTime) / 1_000_000;
+        PerformanceMonitor.getInstance().recordPaint(paintElapsedMs);
     }
 }
